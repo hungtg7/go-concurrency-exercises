@@ -32,7 +32,7 @@ var ErrEOF = errors.New("End of File")
 func (s *Stream) Next() (*Tweet, error) {
 
 	// simulate delay
-	time.Sleep(320 * time.Millisecond)
+	// time.Sleep(320 * time.Millisecond)
 	if s.pos >= len(s.tweets) {
 		return &Tweet{}, ErrEOF
 	}

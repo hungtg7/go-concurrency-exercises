@@ -22,3 +22,12 @@ beertocode      tweets about golang
 vampirewalk666  tweets about golang
 Process took 1.977756255s
 ```
+Solution:
+```
+davecheney      tweets about golang
+beertocode      tweets about golang
+vampirewalk666  tweets about golang
+beertocode      does not tweet about golang
+ironzeb         tweets about golang
+Process took 331.134959ms
+```
