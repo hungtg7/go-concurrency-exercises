@@ -25,21 +25,25 @@ type User struct {
 // HandleRequest runs the processes requested by users. Returns false
 // if process had to be killed
 func HandleRequest(process func(), u *User) bool {
+	done := make(chan bool)
 	timeoutCh := make(<-chan time.Time)
-	timeout := true
 	if !u.IsPremium {
 		timeoutCh = time.After(10 * time.Second)
 	}
 
-	process()
+	go func() {
+		process()
+		done <- true
+	}()
 
-	select {
-	case <-timeoutCh:
-		timeout = false
-	default:
+	for {
+		select {
+		case <-done:
+			return true
+		case <-timeoutCh:
+			return false
+		}
 	}
-
-	return timeout
 }
 
 func main() {

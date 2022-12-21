@@ -55,5 +55,5 @@ func shortProcess() {
 }
 
 func longProcess() {
-	time.Sleep(11 * time.Second)
+	time.Sleep(31 * time.Second)
 }
