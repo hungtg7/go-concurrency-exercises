@@ -19,18 +19,23 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
+	"sync"
+	"time"
 )
 
 // SessionManager keeps track of all sessions from creation, updating
 // to destroying.
 type SessionManager struct {
 	sessions map[string]Session
+	mu       sync.Mutex
 }
 
 // Session stores the session's data
 type Session struct {
-	Data map[string]interface{}
+	Data       map[string]interface{}
+	LastUpdate time.Time
 }
 
 // NewSessionManager creates a new sessionManager
@@ -48,10 +53,15 @@ func (m *SessionManager) CreateSession() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	now := time.Now()
 
 	m.sessions[sessionID] = Session{
-		Data: make(map[string]interface{}),
+		Data:       make(map[string]interface{}),
+		LastUpdate: now,
 	}
+	fmt.Printf("Create ssID: %v with LastUpdate at: %v\n", sessionID, now)
+
+	go m.CleanNotActiveSession()
 
 	return sessionID, nil
 }
@@ -72,6 +82,7 @@ func (m *SessionManager) GetSessionData(sessionID string) (map[string]interface{
 
 // UpdateSessionData overwrites the old session data with the new one
 func (m *SessionManager) UpdateSessionData(sessionID string, data map[string]interface{}) error {
+	m.mu.Lock()
 	_, ok := m.sessions[sessionID]
 	if !ok {
 		return ErrSessionNotFound
@@ -79,10 +90,28 @@ func (m *SessionManager) UpdateSessionData(sessionID string, data map[string]int
 
 	// Hint: you should renew expiry of the session here
 	m.sessions[sessionID] = Session{
-		Data: data,
+		Data:       data,
+		LastUpdate: time.Now(),
 	}
+	m.mu.Unlock()
 
 	return nil
+}
+
+func (m *SessionManager) CleanNotActiveSession() {
+	for {
+		time.Sleep(2 * time.Second)
+		fmt.Printf("Start Cleaning session with all curent session: %v\n", m.sessions)
+		m.mu.Lock()
+
+		for sID, ss := range m.sessions {
+			if time.Since(ss.LastUpdate) > 5*time.Second {
+				fmt.Printf("Cleaned ssID: %v\n", sID)
+				delete(m.sessions, sID)
+			}
+		}
+		m.mu.Unlock()
+	}
 }
 
 func main() {
