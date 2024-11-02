@@ -11,6 +11,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -39,6 +40,7 @@ func HandleRequest(process func(), u *User) bool {
 	for {
 		select {
 		case <-done:
+			fmt.Println("I'm done")
 			return true
 		case <-timeoutCh:
 			return false

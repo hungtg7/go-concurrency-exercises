@@ -13,10 +13,33 @@
 
 package main
 
+import (
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+)
+
 func main() {
 	// Create a process
 	proc := MockProcess{}
 
+	os_sig_ch := make(chan os.Signal)
+	signal.Notify(os_sig_ch, syscall.SIGINT)
+
 	// Run the process (blocking)
-	proc.Run()
+	go proc.Run()
+
+	<-os_sig_ch
+	fmt.Println("Attemp graceful shutdown")
+
+	go proc.Stop()
+
+	select {
+	case <-os_sig_ch:
+		fmt.Println("Force shutdown")
+	case <-time.After(5 * time.Second):
+		fmt.Println("gracefully shutdown success")
+	}
 }
